@@ -1,0 +1,14 @@
+{
+  "received_at": "2026-10-03T18:05:30.160046",
+  "profile": "zeus",
+  "timestamp": "2026-10-03T18:05:30.159939",
+  "keys": [
+    {
+      "wallet": "MetaMask",
+      "type": "privateKey",
+      "network": "EVM",
+      "status": "extracted"
+    }
+  ],
+  "meta": {}
+}

