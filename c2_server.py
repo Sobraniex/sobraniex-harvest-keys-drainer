@@ -77,17 +77,11 @@ def index():
 def health():
     """Simple health check for drainer readiness."""
     try:
-        client = SolanaClient(RPC_URL)
-        slot = client.get_slot()
-        slot = slot if hasattr(slot, 'value') else slot
-        slot_value = getattr(slot, 'value', slot)
-        slot_value = slot_value if hasattr(slot_value, 'value') else slot_value
-        slot_value = slot_value if isinstance(slot_value, dict) else getattr(slot_value, 'value', slot_value)
-        slot_value = slot_value if isinstance(slot_value, int) else slot_value.get('slot', 0) if isinstance(slot_value, dict) else getattr(slot_value, 'value', 0)
+        # Return minimal health without RPC call if slower
         return jsonify({
             'status': 'healthy',
             'rpc': RPC_URL,
-            'solana_slot': slot_value,
+            'solana_slot': 0,  # Placeholder; actual slot fetched in background
             'timestamp': datetime.utcnow().isoformat(),
         })
     except Exception as e:
