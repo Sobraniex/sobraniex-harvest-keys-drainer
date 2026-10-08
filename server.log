@@ -16,3 +16,4 @@
 127.0.0.1 - - [08/Oct/2026 17:47:10] "GET /health HTTP/1.1" 200 -
 [2026-10-08 17:47:17,291] ERROR in c2_server: Drain error: 'coroutine' object has no attribute 'transfer_all'
 127.0.0.1 - - [08/Oct/2026 17:47:17] "[35m[1mPOST /api/receive-sol-key HTTP/1.1[0m" 201 -
+127.0.0.1 - - [08/Oct/2026 17:54:09] "GET /health HTTP/1.1" 200 -
